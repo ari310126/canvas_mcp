@@ -1,6 +1,6 @@
 import httpx
 from typing import Dict, Optional, Any, List
-from config import CANVAS_COOKIE, CSRF_TOKEN, API_BASE
+from config import ACTIVE_CANVAS_COOKIE, CSRF_TOKEN, API_BASE
 
 http_client = httpx.AsyncClient(
     timeout=30.0,
@@ -9,13 +9,13 @@ http_client = httpx.AsyncClient(
 
 def _read_headers() -> Dict[str, str]:
     return {
-        "Cookie": CANVAS_COOKIE,
+        "Cookie": ACTIVE_CANVAS_COOKIE,
         "Accept": "application/json",
     }
 
 def _write_headers() -> Dict[str, str]:
     return {
-        "Cookie": CANVAS_COOKIE,
+        "Cookie": ACTIVE_CANVAS_COOKIE,
         "Accept": "application/json",
         "Content-Type": "application/json",
         "X-CSRF-Token": CSRF_TOKEN,
@@ -80,9 +80,9 @@ def handle_error(e: Exception) -> str:
         s = e.response.status_code
         if s == 401:
             return (
-                "Error: Unauthenticated (401). Your CANVAS_COOKIE may have expired. "
-                "Log into Canvas, open DevTools → Network, click any request and copy "
-                "the 'Cookie' header value, then restart the MCP server with the new value."
+                "Error: Unauthenticated (401). Your Canvas session may have expired. "
+                "Log into Canvas using Brave browser (or update CANVAS_COOKIE manually), "
+                "then restart the MCP server."
             )
         if s == 403:
             return "Error: Forbidden (403). You don't have permission to access this resource."
@@ -91,8 +91,8 @@ def handle_error(e: Exception) -> str:
         if s == 422:
             detail = e.response.text[:500]
             csrf_hint = (
-                " — CSRF token may be missing or stale. Re-copy the full Cookie header "
-                "from your browser DevTools (including _csrf_token=...) and update CANVAS_COOKIE."
+                " — CSRF token may be missing or stale. Ensure you are logged into Canvas "
+                "in your Brave browser (or update CANVAS_COOKIE manually)."
                 if not CSRF_TOKEN else ""
             )
             return f"Error: Unprocessable Entity (422){csrf_hint}. Canvas response: {detail}"

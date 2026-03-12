@@ -28,18 +28,12 @@ if not CANVAS_BASE_URL:
         "(e.g. https://uvu.instructure.com).",
         file=sys.stderr,
     )
-if not CANVAS_COOKIE:
-    print(
-        "WARNING: CANVAS_COOKIE is not set. Copy the Cookie header from any "
-        "authenticated Canvas request in your browser DevTools and set it here.",
-        file=sys.stderr,
-    )
+
 
 if not CSRF_TOKEN:
     print(
-        "WARNING: _csrf_token not found in CANVAS_COOKIE. Write operations (POST/PUT) "
-        "will likely fail with 422. Make sure your CANVAS_COOKIE includes the "
-        "_csrf_token= cookie from your browser session.",
+        "WARNING: _csrf_token not found in Canvas cookies. Write operations (POST/PUT) "
+        "will likely fail with 422. Make sure you are logged into Canvas in Brave.",
         file=sys.stderr,
     )
 

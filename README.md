@@ -29,30 +29,28 @@ cd canvas_mcp
 pip install -r requirements.txt
 ```
 
-### 2. Get your Canvas session cookie
+### 2. Automatic Cookie Extraction
 
-Canvas uses CSRF protection — all write operations (POST/PUT/PATCH/DELETE) require the
-`X-CSRF-Token` header, whose value comes from the `_csrf_token` cookie in your browser session.
-The MCP extracts this automatically from your `CANVAS_COOKIE` string, so you just need to copy
-the full cookie header.
+The easiest way to authenticate is to let the MCP server automatically extract your Canvas session cookie from your Brave browser.
 
-1. Log in to Canvas in your browser (Chrome, Firefox, etc.)
-2. Open **DevTools** → **Network** tab (F12)
-3. Click any request to `*.instructure.com` (e.g. `/api/v1/courses`)
-4. In the **Request Headers** section, find the **`Cookie`** header
-5. Copy its **entire** value — it must include `_csrf_token=...`:
-   ```
-   canvas_session=AbCdEfGh...; _csrf_token=Xy%2FZw%3D%3D...; log_session_id=...
-   ```
-   > ⚠️ If `_csrf_token` is missing from the copied value, all write operations will fail with 422.
-   > Make sure you're copying from a POST/PUT request (or from the main Canvas page load) where
-   > all cookies are present. The server will print a warning on startup if the token is absent.
+1. Install the Brave web browser if you don't already have it.
+2. Log in to Canvas in Brave.
+3. Keep Brave open or closed, the MCP server will find the cookie in the background.
+
+Whenever your Canvas session expires (usually after a few days or weeks), simply log back into Canvas using Brave.
 
 ### 3. Set environment variables
 
+All you need is the base URL.
+
 ```bash
 export CANVAS_BASE_URL="https://yourschool.instructure.com"
-export CANVAS_COOKIE="canvas_session=AbCdEfGh...; _csrf_token=Xy%2FZw%3D%3D...; log_session_id=XyZw..."
+```
+
+*(Optional fallback)*: If automatic extraction fails, you can manually copy the `Cookie` header from your browser DevTools (ensure it includes `_csrf_token=...`) and set it explicitly:
+
+```bash
+export CANVAS_COOKIE="canvas_session=AbCdEfGh...; _csrf_token=...; log_session_id=..."
 ```
 
 ### 4. Run the server
@@ -81,8 +79,7 @@ Add to your `claude_desktop_config.json`:
       "command": "python",
       "args": ["/path/to/canvas_mcp/server.py"],
       "env": {
-        "CANVAS_BASE_URL": "https://yourschool.instructure.com",
-        "CANVAS_COOKIE": "canvas_session=...; _csrf_token=...; log_session_id=..."
+        "CANVAS_BASE_URL": "https://yourschool.instructure.com"
       }
     }
   }
@@ -252,8 +249,8 @@ Create a calendar event "Office Hours" for course 12345 on Friday at 2pm.
 
 ## Security notes
 
-- The `CANVAS_COOKIE` value is equivalent to your Canvas password — keep it secret.
-- Never commit it to git; always pass it via environment variables or a secrets manager.
+- The Canvas cookie value is equivalent to your Canvas password — keep it secret.
+- If you manually use `CANVAS_COOKIE`, never commit it to git; always pass it via environment variables or a secrets manager.
 - The server only communicates with the Canvas domain specified in `CANVAS_BASE_URL`.
 - Write operations (create/update/delete) require your Canvas account to have Teacher or TA
   enrollment in the relevant course; student accounts can only use the read tools.
