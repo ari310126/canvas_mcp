@@ -5,6 +5,11 @@ from urllib.parse import unquote, urlparse
 import browser_cookie3
 
 CANVAS_BASE_URL = os.environ.get("CANVAS_BASE_URL", "").rstrip("/")
+if CANVAS_BASE_URL and not CANVAS_BASE_URL.startswith("https://"):
+    raise ValueError(
+        f"CANVAS_BASE_URL must use HTTPS (got {CANVAS_BASE_URL!r}). "
+        "Set CANVAS_BASE_URL to an https:// URL."
+    )
 CANVAS_COOKIE = os.environ.get("CANVAS_COOKIE", "")
 API_BASE = f"{CANVAS_BASE_URL}/api/v1"
 

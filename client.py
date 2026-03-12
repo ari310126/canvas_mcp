@@ -89,16 +89,15 @@ def handle_error(e: Exception) -> str:
         if s == 404:
             return "Error: Not Found (404). Check that the course/resource ID is correct."
         if s == 422:
-            detail = e.response.text[:500]
             csrf_hint = (
-                " — CSRF token may be missing or stale. Ensure you are logged into Canvas "
+                " CSRF token may be missing or stale. Ensure you are logged into Canvas "
                 "in your Brave browser (or update CANVAS_COOKIE manually)."
                 if not CSRF_TOKEN else ""
             )
-            return f"Error: Unprocessable Entity (422){csrf_hint}. Canvas response: {detail}"
+            return f"Error: Unprocessable Entity (422). Canvas rejected the request.{csrf_hint} Check your input fields and try again."
         if s == 429:
             return "Error: Rate Limited (429). Too many requests — wait a moment and try again."
-        return f"Error: Canvas API returned HTTP {s}: {e.response.text[:300]}"
+        return f"Error: Canvas API returned HTTP {s}. Check your request and try again."
     if isinstance(e, httpx.TimeoutException):
         return "Error: Request timed out. Canvas may be slow — try again shortly."
     if isinstance(e, httpx.ConnectError):
@@ -106,4 +105,4 @@ def handle_error(e: Exception) -> str:
             f"Error: Cannot connect to Canvas at {CANVAS_BASE_URL}. "
             "Check that CANVAS_BASE_URL is correct and your network is available."
         )
-    return f"Error: Unexpected error — {type(e).__name__}: {e}"
+    return f"Error: An unexpected error occurred. Please try again."

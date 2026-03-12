@@ -1,6 +1,7 @@
+import re
 from enum import Enum
 from typing import Optional, List, Dict
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 class ResponseFormat(str, Enum):
     MARKDOWN = "markdown"
@@ -59,6 +60,13 @@ class PageGetInput(BaseModel):
     )
     response_format: ResponseFormat = Field(default=ResponseFormat.MARKDOWN)
 
+    @field_validator("page_url")
+    @classmethod
+    def validate_page_url(cls, v: str) -> str:
+        if re.search(r"[/\\]|\.\.", v):
+            raise ValueError("page_url must be a URL slug (no '/', '\\', or '..')")
+        return v
+
 class PageCreateInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
     course_id: int = Field(..., gt=0)
@@ -73,6 +81,13 @@ class PageUpdateInput(BaseModel):
     title: Optional[str] = Field(default=None, max_length=255)
     body: Optional[str] = Field(default=None, description="New HTML body. Replaces existing content.")
     published: Optional[bool] = Field(default=None)
+
+    @field_validator("page_url")
+    @classmethod
+    def validate_page_url(cls, v: str) -> str:
+        if re.search(r"[/\\]|\.\.", v):
+            raise ValueError("page_url must be a URL slug (no '/', '\\', or '..')")
+        return v
 
 class ModuleListInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
