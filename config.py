@@ -101,21 +101,26 @@ def _detect_default_browser():
                 ["defaults", "read", "com.apple.LaunchServices/com.apple.launchservices.secure"],
                 capture_output=True, text=True, timeout=5,
             )
-            # Find the LSHandlerRoleAll entry associated with the http scheme
-            # Output format: blocks of { LSHandlerContentType/URLScheme, LSHandlerRoleAll, ... }
-            # We look for the block where LSHandlerURLScheme = http or https
-            lines = result.stdout.splitlines()
-            in_http_block = False
+            # Parse by finding {…} blocks that contain the http/https URL scheme,
+            # then extract LSHandlerRoleAll from within that block.
+            # Keys are alphabetically sorted so RoleAll appears before URLScheme;
+            # a linear scan would miss the handler.
             handler_id = None
-            for i, line in enumerate(lines):
-                stripped = line.strip().strip('"').lower()
-                if "lshandlerurlscheme" in stripped and ('"http"' in line.lower() or "= http" in line.lower()):
-                    in_http_block = True
-                if in_http_block and "lshandlerroleall" in stripped:
-                    # Value is on same line: LSHandlerRoleAll = "com.google.chrome";
-                    parts = line.split("=", 1)
-                    if len(parts) == 2:
-                        handler_id = parts[1].strip().strip('";').lower()
+            for m in re.finditer(
+                r"\{(?:[^{}]|\{[^{}]*\})*LSHandlerURLScheme\s*=\s*\"?https?\"?\s*;(?:[^{}]|\{[^{}]*\})*\}",
+                result.stdout,
+                re.DOTALL,
+            ):
+                block = m.group()
+                # Find all LSHandlerRoleAll values; pick the real one (not "-"
+                # from the nested LSHandlerPreferredVersions dict).
+                for role_match in re.finditer(
+                    r"LSHandlerRoleAll\s*=\s*\"?([^\";\s]+)\"?\s*;", block
+                ):
+                    if role_match.group(1) != "-":
+                        handler_id = role_match.group(1).lower()
+                        break
+                if handler_id:
                     break
             if handler_id and handler_id in _BROWSER_MAP:
                 name = handler_id.split(".")[-1].capitalize()
