@@ -40,6 +40,15 @@ import tools.modules
 import tools.communication
 import tools.calendar_events
 import tools.misc
+import tools.grading
+import tools.overrides
+import tools.enrollments
+import tools.conversations
+import tools.analytics
+import tools.rubrics
+import tools.quizzes
+import tools.late_policy
+import tools.assignment_groups
 
 tools.profile_courses.register(mcp)
 tools.assignments.register(mcp)
@@ -48,6 +57,15 @@ tools.modules.register(mcp)
 tools.communication.register(mcp)
 tools.calendar_events.register(mcp)
 tools.misc.register(mcp)
+tools.grading.register(mcp)
+tools.overrides.register(mcp)
+tools.enrollments.register(mcp)
+tools.conversations.register(mcp)
+tools.analytics.register(mcp)
+tools.rubrics.register(mcp)
+tools.quizzes.register(mcp)
+tools.late_policy.register(mcp)
+tools.assignment_groups.register(mcp)
 
 if __name__ == "__main__":
     if "--http" in sys.argv:

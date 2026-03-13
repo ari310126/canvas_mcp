@@ -1,6 +1,10 @@
+import asyncio
 import httpx
 from typing import Dict, Optional, Any, List
 from config import ACTIVE_CANVAS_COOKIE, CSRF_TOKEN, API_BASE
+
+_MAX_RETRIES = 3
+_BACKOFF_BASE = 1.0  # seconds; doubles each retry (1s, 2s, 4s)
 
 http_client = httpx.AsyncClient(
     timeout=30.0,
@@ -21,29 +25,35 @@ def _write_headers() -> Dict[str, str]:
         "X-CSRF-Token": CSRF_TOKEN,
     }
 
+async def _request_with_retry(method: str, url: str, **kwargs) -> httpx.Response:
+    """Execute an HTTP request with exponential backoff on 429 rate-limit responses."""
+    for attempt in range(_MAX_RETRIES + 1):
+        r = await getattr(http_client, method)(url, **kwargs)
+        if r.status_code != 429 or attempt == _MAX_RETRIES:
+            r.raise_for_status()
+            return r
+        wait = _BACKOFF_BASE * (2 ** attempt)
+        await asyncio.sleep(wait)
+    return r  # unreachable, but satisfies type checkers
+
 async def get(endpoint: str, params: Optional[Dict] = None) -> Any:
-    r = await http_client.get(f"{API_BASE}{endpoint}", params=params or {}, headers=_read_headers())
-    r.raise_for_status()
+    r = await _request_with_retry("get", f"{API_BASE}{endpoint}", params=params or {}, headers=_read_headers())
     return r.json()
 
 async def post(endpoint: str, payload: Dict) -> Any:
-    r = await http_client.post(f"{API_BASE}{endpoint}", json=payload, headers=_write_headers())
-    r.raise_for_status()
+    r = await _request_with_retry("post", f"{API_BASE}{endpoint}", json=payload, headers=_write_headers())
     return r.json()
 
 async def put(endpoint: str, payload: Dict) -> Any:
-    r = await http_client.put(f"{API_BASE}{endpoint}", json=payload, headers=_write_headers())
-    r.raise_for_status()
+    r = await _request_with_retry("put", f"{API_BASE}{endpoint}", json=payload, headers=_write_headers())
     return r.json()
 
 async def patch(endpoint: str, payload: Dict) -> Any:
-    r = await http_client.patch(f"{API_BASE}{endpoint}", json=payload, headers=_write_headers())
-    r.raise_for_status()
+    r = await _request_with_retry("patch", f"{API_BASE}{endpoint}", json=payload, headers=_write_headers())
     return r.json()
 
-async def delete(endpoint: str) -> Any:
-    r = await http_client.delete(f"{API_BASE}{endpoint}", headers=_write_headers())
-    r.raise_for_status()
+async def delete(endpoint: str, params: Optional[Dict] = None) -> Any:
+    r = await _request_with_retry("delete", f"{API_BASE}{endpoint}", params=params or {}, headers=_write_headers())
     return r.json()
 
 async def paginate(endpoint: str, params: Optional[Dict] = None, limit: int = 50) -> List[Any]:
@@ -53,8 +63,7 @@ async def paginate(endpoint: str, params: Optional[Dict] = None, limit: int = 50
     query.setdefault("per_page", min(limit, 100))
 
     while url and len(collected) < limit:
-        r = await http_client.get(url, params=query, headers=_read_headers())
-        r.raise_for_status()
+        r = await _request_with_retry("get", url, params=query, headers=_read_headers())
         page = r.json()
         if isinstance(page, list):
             collected.extend(page)
