@@ -1,7 +1,17 @@
 import re
+from datetime import datetime
 from enum import Enum
 from typing import Optional, List, Dict
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+
+def _validate_iso_datetime(v: str) -> str:
+    """Validate that a string is a valid ISO 8601 datetime."""
+    try:
+        datetime.fromisoformat(v)
+    except (ValueError, TypeError):
+        raise ValueError(f"Invalid ISO 8601 datetime: {v!r}")
+    return v
 
 class ResponseFormat(str, Enum):
     MARKDOWN = "markdown"
@@ -117,6 +127,13 @@ class AnnouncementCreateInput(BaseModel):
         description="ISO 8601 datetime to schedule the announcement (e.g. '2025-09-01T08:00:00Z').",
     )
 
+    @field_validator("delayed_post_at")
+    @classmethod
+    def check_delayed_post_at(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            return _validate_iso_datetime(v)
+        return v
+
 class DiscussionListInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
     course_id: int = Field(..., gt=0)
@@ -145,6 +162,13 @@ class AssignmentCreateInput(BaseModel):
     )
     published: bool = Field(default=False)
 
+    @field_validator("due_at")
+    @classmethod
+    def check_due_at(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            return _validate_iso_datetime(v)
+        return v
+
 class AssignmentUpdateInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
     course_id: int = Field(..., gt=0)
@@ -154,6 +178,13 @@ class AssignmentUpdateInput(BaseModel):
     points_possible: Optional[float] = Field(default=None, ge=0)
     due_at: Optional[str] = Field(default=None)
     published: Optional[bool] = Field(default=None)
+
+    @field_validator("due_at")
+    @classmethod
+    def check_due_at(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            return _validate_iso_datetime(v)
+        return v
 
 class PlannerInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -167,6 +198,13 @@ class PlannerInput(BaseModel):
     )
     limit: int = Field(default=50, ge=1, le=200)
     response_format: ResponseFormat = Field(default=ResponseFormat.MARKDOWN)
+
+    @field_validator("start_date", "end_date")
+    @classmethod
+    def check_dates(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            return _validate_iso_datetime(v)
+        return v
 
 class SubmissionListInput(BaseModel):
     model_config = ConfigDict(extra="forbid")

@@ -4,7 +4,7 @@ from config import ACTIVE_CANVAS_COOKIE, CSRF_TOKEN, API_BASE
 
 http_client = httpx.AsyncClient(
     timeout=30.0,
-    follow_redirects=True,
+    follow_redirects=False,
 )
 
 def _read_headers() -> Dict[str, str]:

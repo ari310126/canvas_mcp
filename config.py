@@ -35,7 +35,7 @@ def _get_canvas_cookie() -> str:
         if not domain:
             return ""
             
-        print(f"INFO: CANVAS_COOKIE not set, attempting to extract cookies for {domain} from Brave browser...", file=sys.stderr)
+        print("INFO: CANVAS_COOKIE not set, attempting to extract cookies from Brave browser...", file=sys.stderr)
         cj = browser_cookie3.brave(domain_name=domain)
         cookie_parts = []
         for cookie in cj:
@@ -46,13 +46,20 @@ def _get_canvas_cookie() -> str:
             print("INFO: Successfully extracted Canvas cookies from Brave browser.", file=sys.stderr)
             return extracted_cookie
         else:
-            print(f"WARNING: Extracted cookies for {domain} but found none. Please login to Canvas in Brave.", file=sys.stderr)
+            print("WARNING: No Canvas cookies found. Please login to Canvas in Brave.", file=sys.stderr)
             return ""
     except Exception as e:
-        print(f"WARNING: Failed to extract cookies from Brave browser: {e}", file=sys.stderr)
+        print(f"WARNING: Failed to extract cookies from Brave browser ({type(e).__name__}).", file=sys.stderr)
         return ""
 
 # This creates a shared active cookie used throughout the application
 ACTIVE_CANVAS_COOKIE = _get_canvas_cookie()
 
 CSRF_TOKEN: str = _extract_csrf_token(ACTIVE_CANVAS_COOKIE)
+
+if ACTIVE_CANVAS_COOKIE and not CSRF_TOKEN:
+    print(
+        "WARNING: _csrf_token not found in Canvas cookies. Write operations (POST/PUT) "
+        "will likely fail with 422. Make sure you are logged into Canvas in Brave.",
+        file=sys.stderr,
+    )

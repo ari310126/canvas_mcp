@@ -20,7 +20,7 @@ Usage:
 
 import sys
 from mcp.server.fastmcp import FastMCP
-from config import CANVAS_BASE_URL, CANVAS_COOKIE, CSRF_TOKEN
+from config import CANVAS_BASE_URL, CANVAS_COOKIE
 
 if not CANVAS_BASE_URL:
     print(
@@ -29,13 +29,6 @@ if not CANVAS_BASE_URL:
         file=sys.stderr,
     )
 
-
-if not CSRF_TOKEN:
-    print(
-        "WARNING: _csrf_token not found in Canvas cookies. Write operations (POST/PUT) "
-        "will likely fail with 422. Make sure you are logged into Canvas in Brave.",
-        file=sys.stderr,
-    )
 
 mcp = FastMCP("canvas_mcp")
 
