@@ -31,13 +31,14 @@ pip install -r requirements.txt
 
 ### 2. Automatic Cookie Extraction
 
-The easiest way to authenticate is to let the MCP server automatically extract your Canvas session cookie from your Brave browser.
+The easiest way to authenticate is to let the MCP server automatically extract your Canvas session cookie from your browser. It detects your default browser and tries it first, then falls back through other installed browsers (Chrome, Safari, Edge, Firefox, Brave, Chromium, Arc, Opera, Vivaldi, LibreWolf).
 
-1. Install the Brave web browser if you don't already have it.
-2. Log in to Canvas in Brave.
-3. Keep Brave open or closed, the MCP server will find the cookie in the background.
+1. Log in to Canvas in your browser.
+2. Keep the browser open or closed — the MCP server reads the stored cookies in the background.
 
-Whenever your Canvas session expires (usually after a few days or weeks), simply log back into Canvas using Brave.
+Whenever your Canvas session expires (usually after a few days or weeks), simply log back into Canvas in your browser.
+
+> **Tip**: To force a specific browser, set `BROWSER=firefox` (or `chrome`, `edge`, `brave`, `safari`, etc.) before starting the server.
 
 ### 3. Set environment variables
 

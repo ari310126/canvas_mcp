@@ -81,7 +81,7 @@ def handle_error(e: Exception) -> str:
         if s == 401:
             return (
                 "Error: Unauthenticated (401). Your Canvas session may have expired. "
-                "Log into Canvas using Brave browser (or update CANVAS_COOKIE manually), "
+                "Log into Canvas in your browser (or update CANVAS_COOKIE manually), "
                 "then restart the MCP server."
             )
         if s == 403:
@@ -91,7 +91,7 @@ def handle_error(e: Exception) -> str:
         if s == 422:
             csrf_hint = (
                 " CSRF token may be missing or stale. Ensure you are logged into Canvas "
-                "in your Brave browser (or update CANVAS_COOKIE manually)."
+                "in your browser (or update CANVAS_COOKIE manually)."
                 if not CSRF_TOKEN else ""
             )
             return f"Error: Unprocessable Entity (422). Canvas rejected the request.{csrf_hint} Check your input fields and try again."
