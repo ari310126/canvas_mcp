@@ -24,7 +24,7 @@ Requires **Python 3.10+**.
 
 ```bash
 cd canvas_mcp
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
 ### 2. Set your Canvas URL
@@ -61,8 +61,8 @@ operations will fail with HTTP 422.
 ### 4. Run the server
 
 ```bash
-python server.py            # stdio mode (for Claude Desktop)
-python server.py --http     # HTTP mode on localhost:8080
+python3 server.py            # stdio mode (for Claude Desktop)
+python3 server.py --http     # HTTP mode on localhost:8080
 ```
 
 ---
@@ -75,7 +75,7 @@ Add to your `claude_desktop_config.json`:
 {
   "mcpServers": {
     "canvas": {
-      "command": "python",
+      "command": "python3",
       "args": ["/absolute/path/to/canvas_mcp/server.py"],
       "env": {
         "CANVAS_BASE_URL": "https://yourschool.instructure.com"
